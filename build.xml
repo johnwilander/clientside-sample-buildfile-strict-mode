@@ -59,7 +59,7 @@
 	    <echo>Finished</echo>
 	</target>
 	
-	
+
     <!--Concatenate JS files-->
     <target name="-js.concatenate" depends="-js.lint" 
         description="Concatenates specified JavaScript files">
@@ -72,7 +72,29 @@
         <echo>Finished</echo>
     </target>
 
-	    
+
+    <!--Remove all ES5 strict mode statements-->
+    <target name="-js.removestrictmode" depends="-js.concatenate"
+        description="Removes all ES5 strict mode statements">
+        <replace file="${build.dir}/js/concat.js"
+            token='"use strict";' value=''/>
+        <replace file="${build.dir}/js/concat.js"
+            token="'use strict';" value=''/>
+    </target>
+
+
+    <!--Add a single ES5 strict mode header-->
+    <target name="-js.addstrictmode" depends="-js.removestrictmode"
+        description="Adds a single ES5 strict mode header">
+        <concat destfile="${build.dir}/js/concat-strict.js">
+            <header>"use strict";
+            </header>
+            <fileset
+                dir="${build.dir}/js/"
+                includes="concat.js"/>
+        </concat>
+        <echo>Finished</echo>
+    </target>
     
     <!--Concatenate CSS files-->
     <target name="-css.concatenate" depends="-init" 
@@ -99,7 +121,7 @@
         <apply executable="java" parallel="false" dest="${build.dir}/js">
             <fileset 
                 dir="${build.dir}/js" 
-                includes="concat.js"/>
+                includes="concat*.js"/>
             <arg line="-jar"/>
             <arg path="${yui.dir}"/>
             <srcfile/>
@@ -138,10 +160,11 @@
             -load.properties, 
             -init, 
             -js.concatenate,
+            -js.removestrictmode,
+            -js.addstrictmode,
             -js.lint, 
             -css.concatenate, 
             -js.minify, 
             -css.minify">
     </target>
 </project>
-
